@@ -41,6 +41,10 @@ module Apipie
       add_resources(resources)
 
       @swagger[:info]["x-computed-id"] = @computed_interface_id if Apipie.configuration.swagger_generate_x_computed_id_field?
+
+      @swagger[:paths] = @swagger[:paths].sort.to_h
+      @swagger[:tags] = @swagger[:tags].sort_by(&:first)
+
       return @swagger
     end
 
@@ -80,13 +84,8 @@ module Apipie
         @swagger[:host] = Apipie.configuration.swagger_api_host
       end
 
-      if params_in_body?
-        @swagger[:consumes] = ['application/json']
-        @swagger[:info][:title] += " (params in:body)"
-      else
-        @swagger[:consumes] = ['application/x-www-form-urlencoded', 'multipart/form-data']
-        @swagger[:info][:title] += " (params in:formData)"
-      end
+      @swagger[:consumes] = ['application/x-www-form-urlencoded', 'application/json']
+      @swagger[:info][:title] += " (params in:body)"
 
       @paths = @swagger[:paths]
       @definitions = @swagger[:definitions]
@@ -107,6 +106,7 @@ module Apipie
         add_resource_description(resource_name, resource_defs)
         add_resource_methods(resource_name, resource_defs)
       end
+      resources.sort_by {|resource_name, resource_defs| resource_name}
     end
 
     def add_resource_methods(resource_name, resource_defs)
@@ -176,7 +176,8 @@ module Apipie
 
     def tag_name_for_resource(resource)
       # resource.controller
-      resource._id
+      # resource._id ### This is what was before
+      resource._name
     end
 
     def add_resource_description(resource_name, resource)
@@ -223,9 +224,11 @@ module Apipie
         method_key = api.http_method.downcase
         @current_http_method = method_key
 
+
         methods[method_key] = {
+            id: ruby_method.resource._id,  ## Added for examples extractor process
             tags: [tag_name_for_resource(ruby_method.resource)] + warning_tags,
-            consumes: params_in_body? ? ['application/json'] : ['application/x-www-form-urlencoded', 'multipart/form-data'],
+            consumes: ['application/json', 'application/x-www-form-urlencoded'], ##Comment this out for openApi3 export
             operationId: op_id,
             summary: Apipie.app.translate(api.short_description, @current_lang),
             parameters: swagger_params_array_for_method(ruby_method, api.path),
@@ -333,7 +336,6 @@ module Apipie
         # pp v
       end
 
-
       return lookup[v.expected_type.to_sym] || v.expected_type
     end
 
@@ -407,7 +409,6 @@ module Apipie
 
         result[response.code] = swagger_response_block
       end
-
       if result.length == 0
         warn_no_return_codes_specified
         result[200] = {description: 'ok'}
@@ -415,7 +416,6 @@ module Apipie
 
       result
     end
-
 
 
     #--------------------------------------------------------------------------
@@ -440,7 +440,7 @@ module Apipie
                                                  required: true,
                                                  _gen_added_from_path: true,
                                                  name: name,
-                                                 validator: Apipie::Validator::NumberValidator.new(nil),
+                                                 validator: Apipie::Validator::StringValidator.new(nil),
                                                  options: {
                                                      in: "path"
                                                  }
@@ -614,7 +614,6 @@ module Apipie
     end
 
     def swagger_params_array_for_method(method, path)
-
       swagger_result = []
       all_params_hash = add_missing_params(method, path)
 
@@ -648,7 +647,6 @@ module Apipie
       swagger_result
     end
 
-
     def add_headers_from_hash(swagger_params_array, headers)
       swagger_headers = headers.map do |header|
         {
@@ -658,7 +656,6 @@ module Apipie
           description: header[:description],
           type:  header[:options][:type] || 'string'
         }
-
       end
       swagger_params_array.push(*swagger_headers)
     end
@@ -701,7 +698,7 @@ module Apipie
         end
       end
     end
-
+    
   end
 
 end

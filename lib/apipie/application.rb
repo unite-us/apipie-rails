@@ -278,7 +278,7 @@ module Apipie
            result[k] = v if k == resource_name
          end
          result
-       end
+      end
 
       @swagger_generator.generate_from_resources(version,_resources, method_name, lang, clear_warnings)
     end

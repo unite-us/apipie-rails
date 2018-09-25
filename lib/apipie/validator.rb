@@ -387,6 +387,31 @@ module Apipie
 
 
     # special type of validator: we say that it's not specified
+    class StringValidator < BaseValidator
+
+      def validate(value)
+        self.class.validate(value)
+      end
+
+      def self.build(param_description, argument, options, block)
+        if argument == :string
+          self.new(param_description)
+        end
+      end
+
+      def description
+        "Must be a alphanumeric string."
+      end
+
+      def expected_type
+        'string'
+      end
+
+      def self.validate(value)
+        value.to_s =~ /([0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/
+      end
+    end
+
     class UndefValidator < BaseValidator
 
       def validate(value)
