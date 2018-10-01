@@ -84,7 +84,7 @@ module Apipie
         @swagger[:host] = Apipie.configuration.swagger_api_host
       end
 
-      @swagger[:consumes] = ['application/x-www-form-urlencoded', 'application/json']
+      @swagger[:consumes] = ['application/json']
       @swagger[:info][:title] += " (params in:body)"
 
       @paths = @swagger[:paths]
@@ -228,7 +228,7 @@ module Apipie
         methods[method_key] = {
             id: ruby_method.resource._id,  ## Added for examples extractor process
             tags: [tag_name_for_resource(ruby_method.resource)] + warning_tags,
-            consumes: ['application/json', 'application/x-www-form-urlencoded'], ##Comment this out for openApi3 export
+            consumes: ['application/json'], ## Comment this line out for openApi3 export
             operationId: op_id,
             summary: Apipie.app.translate(api.short_description, @current_lang),
             parameters: swagger_params_array_for_method(ruby_method, api.path),

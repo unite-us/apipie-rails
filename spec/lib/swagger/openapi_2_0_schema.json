@@ -247,6 +247,9 @@
         }
       },
       "properties": {
+        "id":{
+          "type" : "string"
+        },
         "tags": {
           "type": "array",
           "items": {
